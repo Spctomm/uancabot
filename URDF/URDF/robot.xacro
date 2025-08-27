@@ -1,0 +1,157 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="uancabot">
+	<!-- ===========
+	O CÓDIGO ESTÁ PROGRAMADO COM O LIDAR, CASO NAO TENHA ESSE SENSOR NO PROJETO RETIRE DE TODOS OS ARQUIVOS DESSE ROBO
+	A MASSA DO ROBO NAO ESTA CERTA, PRECISA FAZER A PESAGEM DELE
+	================= -->
+	<xacro:include filename="inertial_macros.xacro"/>
+
+	<!-- CONSTANTS / CONSTANTES -->
+	<xacro:property name="pi_const" value="3.14159265356" />
+	<xacro:property name="half_pi_const" value="1.570796" />
+
+<!-- MATERIAIS / MATERIALS -->
+	<material name="wood">
+		<color rgba="0.7 0.5 0.3 1"/>
+	</material>
+	<material name="black">
+    	<color rgba="0.1 0.1 0.1 1"/>
+    </material>  
+  <material name="red">
+    <color rgba"1.0 0.0 0.0 1.0"/>
+  </material>
+
+<!-- MEDIDA / MEASUREMENT -->  
+
+	<!-- BASE / SURFACE -->  
+	<xacro:property name="base_x_dim" value="0.393"/>
+	<xacro:property name="base_y_dim" value="0.58"/>
+	<xacro:property name="base_z_dim" value="0.02"/>
+	<xacro:property name="base_z_offset" value="0.10"/>
+	<xacro:property name="base_mass" value="9.0"/>
+	<xacro:property name="base_inertia" value="0.1"/>
+
+	<!-- RODA / WHEEL (hoverboard) -->
+	<xacro:property name="wheel_radius" value="0.0825"/>
+	<xacro:property name="wheel_length" value="0.058"/>
+	<xacro:property name="wheel_mass" value="1.0"/>
+	<xacro:property name="wheel_ixx" value="0.01"/>
+	<xacro:property name="wheel_iyy" value="0.01"/>
+	<xacro:property name="wheel_izz" value="0.01"/>
+	<xacro:property name="wheel_center_z" value="0.05"/>
+	<xacro:property name="wheel_offset_y" value="0.229"/>
+
+	<!-- RODA TRASEIRA / REAR WHEEL -->
+	<xacro:property name="rear_radius" value="0.035"/>
+	<xacro:property name="rear_mass" value="0.2"/>
+	<xacro:property name="rear_inertia" value="0.001"/>
+	<xacro:property name="rear_x_offset" value="-0.255"/>
+	<xacro:property name="rear_z_offset" value="0.035"/>
+
+  	<!-- BASE / SURFACE -->
+ <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="${base_x_dim} ${base_y_dim} ${base_z_dim}"/>
+      </geometry>
+      <origin xyz="0 0 ${base_z_offset}" rpy="0 0 0"/>
+      <material name="wood"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${base_x_dim} ${base_y_dim} ${base_z_dim}"/>
+      </geometry>
+      <origin xyz="0 0 ${base_z_offset}" rpy="0 0 0"/>
+    </collision>
+    <xacro:inertial_box mass="${base_mass}" x="${base_x_dim}" y="${base_y_dim}" z="${base_z_dim}">
+        <origin xyz="0 0 ${base_z_offset}" rpy="0 0 0"/>
+    </xacro:inertial_box>
+  </link>
+  <gazebo reference="base_link">
+        <material>Gazebo/Wood</material>
+  </gazebo>
+
+  <!-- RODA / WHEEL (hoverboard) -->
+  <xacro:macro name="hoverboard_wheel" params="name y">
+    <link name="${name}">
+      <visual>
+        <geometry>
+          <cylinder length="${wheel_length}" radius="${wheel_radius}"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+        <material name="black"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder length="${wheel_length}" radius="${wheel_radius}"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      </collision>
+      <xacro:inertial_cylinder mass="${wheel_mass}" length="${wheel_length}" radius="${wheel_radius}">
+        <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      </xacro:inertial_cylinder>
+    </link>
+    <gazebo reference="${name}">
+        <material>Gazebo/Black</material>
+        <mu1>0.8</mu1>
+        <mu2>0.8</mu2>
+    </gazebo>
+
+    <joint name="${name}_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${name}"/>
+      <origin xyz="0 ${y} ${wheel_center_z}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+    </joint>
+    <transmission name="${name}_transmission">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="${name}_joint">
+            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="${name}_motor">
+            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+  </xacro:macro>
+
+  <!-- INSTANCIANDO RODAS -->
+  <xacro:hoverboard_wheel name="left_wheel"  y="${wheel_offset_y}"/>
+  <xacro:hoverboard_wheel name="right_wheel" y="-${wheel_offset_y}"/>
+
+  <!-- RODINHA TRASEIRA / REAR WHEEL -->
+  <link name="rear_wheel">
+    <visual>
+      <geometry>
+        <sphere radius="${rear_radius}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <sphere radius="${rear_radius}"/>
+      </geometry>
+    </collision>
+    <xacro:inertial_sphere mass="${rear_mass}" radius="${rear_radius}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:inertial_sphere>
+  </link>
+
+    <gazebo reference="rear_wheel">
+        <material>Gazebo/Black</material>
+        <mu1>0.01</mu1>
+        <mu2>0.01</mu2>
+    </gazebo>
+
+  <joint name="rear_wheel_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="rear_wheel"/>
+    <origin xyz="${rear_x_offset} 0 ${rear_z_offset}" rpy="0 0 0"/>
+  </joint>
+  <gazebo>
+    <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+      <parameters>$(find uancabot)/config/controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+</robot>

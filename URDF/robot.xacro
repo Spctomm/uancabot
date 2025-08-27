@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="uancabot">
+	<!-- ===========
+	O CÓDIGO ESTÁ PROGRAMADO COM O LIDAR, CASO NAO TENHA ESSE SENSOR NO PROJETO RETIRE DE TODOS OS ARQUIVOS DESSE ROBO
+	A MASSA DO ROBO NAO ESTA CERTA, PRECISA FAZER A PESAGEM DELE
+	================= -->
+
+<!-- MATERIAIS / MATERIALS -->
+	<material name="wood">
+		<color rgba="0.7 0.5 0.3 1"/>
+	</material>
+	<material name="black">
+    	<color rgba="0.1 0.1 0.1 1"/>
+    </material>  
+
+<!-- MEDIDA / MEASUREMENT -->  
+
+	<!-- BASE / SURFACE -->  
+	<xacro:property name="base_x_dim" value="0.393"/>
+	<xacro:property name="base_y_dim" value="0.58"/>
+	<xacro:property name="base_z_dim" value="0.02"/>
+	<xacro:property name="base_z_offset" value="0.10"/>
+	<xacro:property name="base_mass" value="9.0"/>
+	<xacro:property name="base_inertia" value="0.1"/>
+
+	<!-- RODA / WHEEL (hoverboard) -->
+	<xacro:property name="wheel_radius" value="0.0825"/>
+	<xacro:property name="wheel_length" value="0.058"/>
+	<xacro:property name="wheel_mass" value="1.0"/>
+	<xacro:property name="wheel_ixx" value="0.01"/>
+	<xacro:property name="wheel_iyy" value="0.01"/>
+	<xacro:property name="wheel_izz" value="0.01"/>
+	<xacro:property name="wheel_center_z" value="0.05"/>
+	<xacro:property name="wheel_offset_y" value="0.229"/>
+
+	<!-- RODA TRASEIRA / REAR WHEEL -->
+	<xacro:property name="rear_radius" value="0.035"/>
+	<xacro:property name="rear_mass" value="0.2"/>
+	<xacro:property name="rear_inertia" value="0.001"/>
+	<xacro:property name="rear_x_offset" value="-0.255"/>
+	<xacro:property name="rear_z_offset" value="0.035"/>
+
+  	<!-- BASE / SURFACE -->
+ <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="${base_x_dim} ${base_y_dim} ${base_z_dim}"/>
+      </geometry>
+      <origin xyz="0 0 ${base_z_offset}" rpy="0 0 0"/>
+      <material name="wood"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${base_x_dim} ${base_y_dim} ${base_z_dim}"/>
+      </geometry>
+      <origin xyz="0 0 ${base_z_offset}" rpy="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="${base_mass}"/>
+      <inertia ixx="${base_inertia}" ixy="0.0" ixz="0.0"
+               iyy="${base_inertia}" iyz="0.0" izz="${base_inertia}"/>
+    </inertial>
+  </link>
+
+  <!-- RODA / WHEEL (hoverboard) -->
+  <xacro:macro name="hoverboard_wheel" params="name y">
+    <link name="${name}">
+      <visual>
+        <geometry>
+          <cylinder length="${wheel_length}" radius="${wheel_radius}"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+        <material name="black"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder length="${wheel_length}" radius="${wheel_radius}"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="${wheel_mass}"/>
+        <inertia ixx="${wheel_ixx}" ixy="0" ixz="0"
+                 iyy="${wheel_iyy}" iyz="0"
+                 izz="${wheel_izz}"/>
+      </inertial>
+    </link>
+
+    <joint name="${name}_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${name}"/>
+      <origin xyz="0 ${y} ${wheel_center_z}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+    </joint>
+  </xacro:macro>
+
+  <!-- INSTANCIANDO RODAS -->
+  <xacro:hoverboard_wheel name="left_wheel"  y="${wheel_offset_y}"/>
+  <xacro:hoverboard_wheel name="right_wheel" y="-${wheel_offset_y}"/>
+
+  <!-- RODINHA TRASEIRA / REAR WHEEL -->
+  <link name="rear_wheel">
+    <visual>
+      <geometry>
+        <sphere radius="${rear_radius}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <sphere radius="${rear_radius}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${rear_mass}"/>
+      <inertia ixx="${rear_inertia}" ixy="0" ixz="0"
+               iyy="${rear_inertia}" iyz="0"
+               izz="${rear_inertia}"/>
+    </inertial>
+  </link>
+
+  <joint name="rear_wheel_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="rear_wheel"/>
+    <origin xyz="${rear_x_offset} 0 ${rear_z_offset}" rpy="0 0 0"/>
+  </joint>
+</robot>

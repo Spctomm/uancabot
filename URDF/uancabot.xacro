@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="uancabot">
+
+    <xacro:include filename="inertial_macros.xacro"/>
+    <!-- Não sei se terá lidar no uancabot caso nao tenha,remova a linha 
+    <xacro:include filename="lidar.xacro"/> desse arquivo e o arquivo lidar.xacro -->
+    <xacro:include filename="lidar.xacro"/> 
+    <xacro:include filename="robot.xacro"/>
+
+</robot>
